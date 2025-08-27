@@ -1,136 +1,282 @@
-class FlipClock {
-    constructor() {
-        this.previousTime = {
-            hour1: '',
-            hour2: '',
-            min1: '',
-            min2: '',
-            sec1: '',
-            sec2: ''
-        };
-        this.isAnimating = {};
-        this.init();
-    }
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-    init() {
-        // Inicializa imediatamente
-        this.updateTime();
-        this.setupEventListeners();
-        
-        // Atualiza o relógio a cada segundo
-        setInterval(() => {
-            this.updateTime();
-        }, 1000);
-    }
+body {
+    background: #000000;
+    font-family: 'Courier New', monospace;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    max-height: 300px;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+}
 
-    updateTime() {
-        const now = new Date();
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        const seconds = String(now.getSeconds()).padStart(2, '0');
-        
-        const currentDigits = {
-            hour1: hours[0],
-            hour2: hours[1],
-            min1: minutes[0],
-            min2: minutes[1],
-            sec1: seconds[0],
-            sec2: seconds[1]
-        };
-        
-        // Atualiza cada dígito individualmente
-        Object.keys(currentDigits).forEach(key => {
-            this.updateDigit(key, currentDigits[key], this.previousTime[key]);
-            this.previousTime[key] = currentDigits[key];
-        });
-    }
+.clock-container {
+    text-align: center;
+    padding: 1rem;
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+}
 
-    updateDigit(elementId, newValue, oldValue) {
-        // Evita animações sobrepostas
-        if (this.isAnimating[elementId]) {
-            return;
-        }
-        
-        const element = document.getElementById(elementId);
-        if (!element) return;
-        
-        const front = element.querySelector('.flip-card-front');
-        const back = element.querySelector('.flip-card-back');
-        
-        if (!front || !back) return;
-        
-        // Se o valor mudou e não é a primeira inicialização
-        if (newValue !== oldValue && oldValue !== '') {
-            this.isAnimating[elementId] = true;
-            
-            // Prepara o novo valor na parte de trás
-            back.textContent = newValue;
-            
-            // Remove classe anterior se existir
-            element.classList.remove('flipping');
-            
-            // Força reflow
-            element.offsetHeight;
-            
-            // Adiciona a classe de flip
-            element.classList.add('flipping');
-            
-            // Após a animação, atualiza a frente e remove a classe
-            setTimeout(() => {
-                front.textContent = newValue;
-                element.classList.remove('flipping');
-                this.isAnimating[elementId] = false;
-            }, 300);
-        } else {
-            // Se não mudou ou é a primeira vez, apenas atualiza sem animação
-            front.textContent = newValue;
-            back.textContent = newValue;
-        }
-    }
+.time-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+}
 
-    setupEventListeners() {
-        // Botão de tela cheia
-        const fullscreenBtn = document.getElementById('fullscreen-btn');
-        fullscreenBtn.addEventListener('click', this.toggleFullscreen);
-        
-        // Tecla F11 para tela cheia
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'F11') {
-                e.preventDefault();
-                this.toggleFullscreen();
-            }
-            
-            // Tecla ESC para sair da tela cheia
-            if (e.key === 'Escape' && document.fullscreenElement) {
-                document.exitFullscreen();
-            }
-        });
-        
-        // Atualiza o texto do botão quando entra/sai da tela cheia
-        document.addEventListener('fullscreenchange', () => {
-            const btn = document.getElementById('fullscreen-btn');
-            if (document.fullscreenElement) {
-                btn.textContent = '⛶ Sair da Tela Cheia';
-            } else {
-                btn.textContent = '⛶ Tela Cheia';
-            }
-        });
-    }
+.time-group {
+    display: flex;
+    gap: 0.3rem;
+}
 
-    toggleFullscreen() {
-        if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen().catch(err => {
-                console.log('Erro ao entrar em tela cheia:', err);
-            });
-        } else {
-            document.exitFullscreen().catch(err => {
-                console.log('Erro ao sair da tela cheia:', err);
-            });
-        }
+.flip-card {
+    width: 60px;
+    height: 80px;
+    perspective: 1000px;
+    position: relative;
+}
+
+.flip-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+}
+
+.flip-card.flipping .flip-card-inner {
+    transform: rotateX(180deg);
+}
+
+.flip-card-front, .flip-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #ffffff;
+    background: #0a0a0a;
+    border-radius: 15px;
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.8),
+        inset 0 1px 2px rgba(255, 255, 255, 0.05),
+        inset 0 -1px 2px rgba(0, 0, 0, 0.8);
+    border: 1px solid #1a1a1a;
+}
+
+.flip-card-back {
+    transform: rotateX(180deg);
+    background: #151515;
+}
+
+.separator {
+    font-size: 2rem;
+    color: #666666;
+    font-weight: bold;
+    margin: 0 0.5rem;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+    animation: blink 2s infinite;
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0.3; }
+}
+
+.controls {
+    margin-top: 2rem;
+}
+
+.control-btn {
+    background: #0a0a0a;
+    color: #888888;
+    border: 1px solid #1a1a1a;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.8);
+}
+
+.control-btn:hover {
+    background: #151515;
+    color: #aaaaaa;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.9);
+}
+
+.control-btn:active {
+    transform: translateY(0);
+}
+
+/* Responsividade otimizada para Notion */
+@media (max-width: 768px) {
+    .flip-card {
+        width: 45px;
+        height: 60px;
+    }
+    
+    .flip-card-front, .flip-card-back {
+        font-size: 1.8rem;
+        border-radius: 8px;
+    }
+    
+    .separator {
+        font-size: 1.5rem;
+        margin: 0 0.3rem;
+    }
+    
+    .time-display {
+        gap: 0.4rem;
+    }
+    
+    .time-group {
+        gap: 0.2rem;
+    }
+    
+    .clock-container {
+        padding: 0.5rem;
+    }
+    
+    .control-btn {
+        font-size: 0.8rem;
+        padding: 8px 16px;
     }
 }
 
-// Inicializa o relógio quando a página carrega
-document.addEventListener('DOMContentLoaded', () => {
-    new FlipClock();
-});
+@media (max-width: 480px) {
+    .flip-card {
+        width: 35px;
+        height: 50px;
+    }
+    
+    .flip-card-front, .flip-card-back {
+        font-size: 1.4rem;
+        border-radius: 6px;
+    }
+    
+    .separator {
+        font-size: 1.2rem;
+        margin: 0 0.2rem;
+    }
+    
+    .time-display {
+        gap: 0.3rem;
+    }
+    
+    .time-group {
+        gap: 0.15rem;
+    }
+    
+    .control-btn {
+        font-size: 0.7rem;
+        padding: 6px 12px;
+    }
+}
+
+/* Otimização específica para embeds do Notion */
+@media (max-width: 600px) and (max-height: 400px) {
+    body {
+        min-height: 150px;
+        max-height: 200px;
+    }
+    
+    .flip-card {
+        width: 40px;
+        height: 55px;
+    }
+    
+    .flip-card-front, .flip-card-back {
+        font-size: 1.6rem;
+    }
+    
+    .separator {
+        font-size: 1.3rem;
+    }
+}
+
+/* Efeito de entrada */
+.flip-card {
+    animation: slideIn 0.8s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Delay para cada carta */
+.time-group:nth-child(1) .flip-card:nth-child(1) { animation-delay: 0.1s; }
+.time-group:nth-child(1) .flip-card:nth-child(2) { animation-delay: 0.2s; }
+.time-group:nth-child(3) .flip-card:nth-child(1) { animation-delay: 0.3s; }
+.time-group:nth-child(3) .flip-card:nth-child(2) { animation-delay: 0.4s; }
+.time-group:nth-child(5) .flip-card:nth-child(1) { animation-delay: 0.5s; }
+.time-group:nth-child(5) .flip-card:nth-child(2) { animation-delay: 0.6s; }
+
+
+/* Otimização para containers muito pequenos do Notion */
+@media (max-width: 320px) {
+    .flip-card {
+        width: 30px;
+        height: 42px;
+    }
+    
+    .flip-card-front, .flip-card-back {
+        font-size: 1.2rem;
+        border-radius: 4px;
+    }
+    
+    .separator {
+        font-size: 1rem;
+        margin: 0 0.1rem;
+    }
+    
+    .time-display {
+        gap: 0.2rem;
+    }
+    
+    .time-group {
+        gap: 0.1rem;
+    }
+    
+    .clock-container {
+        padding: 0.3rem;
+    }
+}
+
+/* Garantir que o relógio funcione bem em iframes do Notion */
+html, body {
+    width: 100%;
+    height: auto;
+    min-height: auto;
+}
+
+/* Otimização para touch devices */
+@media (hover: none) and (pointer: coarse) {
+    .control-btn {
+        padding: 12px 20px;
+        font-size: 0.9rem;
+        min-height: 44px; /* Tamanho mínimo recomendado para touch */
+    }
+}
